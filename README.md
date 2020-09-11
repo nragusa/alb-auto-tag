@@ -4,7 +4,8 @@ To get up and running, first make sure you have the [CDK installed](https://docs
 
 Once installed, create a python virtual environment, and install the required depencies:
 
-```virtualenv .env
+```
+virtualenv .env
 source .env/bin/activate
 pip install -r requirements.txt
 ```
