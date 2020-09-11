@@ -8,6 +8,6 @@
     "external_tag_value": "true",
     "internal_tag_key": "InternalALB",
     "internal_tag_value": "true",
-    "enforce_compliance": "true"
+    "enforce_compliance": "false"
   }
 }
