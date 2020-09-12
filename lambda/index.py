@@ -88,9 +88,6 @@ EXTERNAL_ALB_TAG_VALUE = os.environ.get('EXTERNAL_TAG_VALUE')
 INTERNAL_ALB_TAG_KEY = os.environ.get('INTERNAL_TAG_KEY')
 INTERNAL_ALB_TAG_VALUE = os.environ.get('INTERNAL_TAG_VALUE')
 
-# If set to true, this Config Rule will set the tag on the ALB
-ENFORCE_COMPLIANCE = os.environ.get('ENFORCE_COMPLIANCE')
-
 #############
 # Main Code #
 #############
@@ -113,11 +110,6 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
                     print(
                         'Found a compliant tag key / value pair - marking as COMPLIANT')
                     overall_eval = 'COMPLIANT'
-            # If enforce compliance is enabled and the resource is still non-compliant,
-            # add the tag
-            if ENFORCE_COMPLIANCE == 'true' and overall_eval == 'NON_COMPLIANT':
-                add_tag(alb_client, elb['LoadBalancerArn'], dict(
-                    Key=EXTERNAL_ALB_TAG_KEY, Value=EXTERNAL_ALB_TAG_VALUE))
         elif elb['Scheme'] == 'internal':
             print(f'Internal ALB found with ARN {elb["LoadBalancerArn"]}')
             for tag in tags:
@@ -125,11 +117,6 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
                     print(
                         'Found a compliant tag key / value pair - marking as COMPLIANT')
                     overall_eval = 'COMPLIANT'
-            # If enforce compliance is enabled and the resource is still non-compliant,
-            # add the tag
-            if ENFORCE_COMPLIANCE == 'true' and overall_eval == 'NON_COMPLIANT':
-                add_tag(alb_client, elb['LoadBalancerArn'], dict(
-                    Key=INTERNAL_ALB_TAG_KEY, Value=INTERNAL_ALB_TAG_VALUE))
         else:
             print('Unknown ALB type found')
         if overall_eval == 'NON_COMPLIANT':
@@ -160,13 +147,6 @@ def get_alb_tags(client, elbv2_arn):
         ResourceArns=[elbv2_arn]
     )
     return resp['TagDescriptions'][0]['Tags']
-
-
-def add_tag(client, elbv2_arn, tag):
-    resp = client.add_tags(
-        ResourceArns=[elbv2_arn],
-        Tags=[tag]
-    )
 
 
 def evaluate_parameters(rule_parameters):

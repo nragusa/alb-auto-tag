@@ -1,0 +1,100 @@
+{
+  "description": "Adds a tag key / value pair to an Application Load Balancer",
+  "schemaVersion": "0.3",
+  "assumeRole": "{{ AutomationAssumeRole }}",
+  "parameters": {
+    "AutomationAssumeRole": {
+      "default": "",
+      "description": "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf",
+      "type": "String"
+    },
+    "ALBArn": {
+      "type": "String",
+      "description": "(Required) The ARN of the ALB"
+    },
+    "ExternalTagKey": {
+      "type": "String",
+      "description": "(Required) The tag key for an external ALB"
+    },
+    "ExternalTagValue": {
+      "type": "String",
+      "description": "(Required) The tag value for an external ALB"
+    },
+    "InternalTagKey": {
+      "type": "String",
+      "description": "(Required) The tag key for an internal ALB"
+    },
+    "InternalTagValue": {
+      "type": "String",
+      "description": "(Required) The tag value for an internal ALB"
+    }
+  },
+  "mainSteps": [{
+      "name": "GetALBScheme",
+      "action": "aws:executeAwsApi",
+      "inputs": {
+        "Service": "elbv2",
+        "Api": "DescribeLoadBalancers",
+        "LoadBalancerArns": ["{{ALBArn}}"]
+      },
+      "outputs": [{
+        "Name": "scheme",
+        "Selector": "$.LoadBalancers[0].Scheme",
+        "Type": "String"
+      }]
+    },
+    {
+      "name": "ChooseTagType",
+      "action": "aws:branch",
+      "inputs": {
+        "Choices": [{
+            "NextStep": "TagExternal",
+            "Variable": "{{GetALBScheme.scheme}}",
+            "StringEquals": "internet-facing"
+          },
+          {
+            "NextStep": "TagInternal",
+            "Variable": "{{GetALBScheme.scheme}}",
+            "StringEquals": "internal"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TagExternal",
+      "action": "aws:executeAwsApi",
+      "nextStep": "End",
+      "inputs": {
+        "Service": "elbv2",
+        "Api": "AddTags",
+        "ResourceArns": ["{{ALBArn}}"],
+        "Tags": [{
+          "Key": "{{ExternalTagKey}}",
+          "Value": "{{ExternalTagValue}}"
+        }]
+      }
+    },
+    {
+      "name": "TagInternal",
+      "action": "aws:executeAwsApi",
+      "nextStep": "End",
+      "inputs": {
+        "Service": "elbv2",
+        "Api": "AddTags",
+        "ResourceArns": ["{{ALBArn}}"],
+        "Tags": [{
+          "Key": "{{InternalTagKey}}",
+          "Value": "{{InternalTagValue}}"
+        }]
+      }
+    },
+    {
+      "name": "End",
+      "action": "aws:sleep",
+      "inputs": {
+        "Duration": "PT1S"
+      },
+      "isEnd": "true"
+    }
+  ]
+}
