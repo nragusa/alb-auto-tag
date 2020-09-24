@@ -17,6 +17,8 @@ Now you should edit the `cdk.json` file for your environment. The following vari
     "external_tag_value": "true",
     "internal_tag_key": "InternalALB",
     "internal_tag_value": "true",
+    "exception_tag_key": "WAFException",
+    "exception_tag_value": "false",
     "enforce_compliance": "true"
 ```
 
@@ -35,5 +37,3 @@ cdk deploy
 - `cdk deploy` deploy this stack to your default AWS account/region
 - `cdk diff` compare deployed stack with current state
 - `cdk docs` open CDK documentation
-
-Enjoy!
