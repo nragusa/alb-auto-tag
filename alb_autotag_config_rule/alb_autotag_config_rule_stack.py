@@ -19,6 +19,10 @@ class AlbAutotagConfigRuleStack(core.Stack):
         internal_tag_key = self.node.try_get_context("internal_tag_key")
         internal_tag_value = self.node.try_get_context(
             "internal_tag_value")
+        exception_tag_key = self.node.try_get_context(
+            "exception_tag_key")
+        exception_tag_value = self.node.try_get_context(
+            "exception_tag_value")
         enforce_compliance = self.node.try_get_context("enforce_compliance")
 
         # Config Rule Lambda function
@@ -34,7 +38,9 @@ class AlbAutotagConfigRuleStack(core.Stack):
                 EXTERNAL_TAG_KEY=external_tag_key,
                 EXTERNAL_TAG_VALUE=external_tag_value,
                 INTERNAL_TAG_KEY=internal_tag_key,
-                INTERNAL_TAG_VALUE=internal_tag_value
+                INTERNAL_TAG_VALUE=internal_tag_value,
+                EXCEPTION_TAG_KEY=exception_tag_key,
+                EXCEPTION_TAG_VALUE=exception_tag_value
             )
         )
 
@@ -116,7 +122,11 @@ class AlbAutotagConfigRuleStack(core.Stack):
                     InternalTagKey=dict(StaticValue=dict(
                         Values=[internal_tag_key])),
                     InternalTagValue=dict(StaticValue=dict(
-                        Values=[internal_tag_value]))
+                        Values=[internal_tag_value])),
+                    ExceptionTagKey=dict(StaticValue=dict(
+                        Values=[exception_tag_key])),
+                    ExceptionTagValue=dict(StaticValue=dict(
+                        Values=[exception_tag_value]))
                 ),
                 target_id=remediation_document.ref,
                 target_type="SSM_DOCUMENT",
@@ -139,7 +149,11 @@ class AlbAutotagConfigRuleStack(core.Stack):
                     InternalTagKey=dict(StaticValue=dict(
                         Values=[internal_tag_key])),
                     InternalTagValue=dict(StaticValue=dict(
-                        Values=[internal_tag_value]))
+                        Values=[internal_tag_value])),
+                    ExceptionTagKey=dict(StaticValue=dict(
+                        Values=[exception_tag_key])),
+                    ExceptionTagValue=dict(StaticValue=dict(
+                        Values=[exception_tag_value]))
                 ),
                 target_id=remediation_document.ref,
                 target_type="SSM_DOCUMENT"

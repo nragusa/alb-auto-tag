@@ -8,6 +8,8 @@
     "external_tag_value": "true",
     "internal_tag_key": "InternalALB",
     "internal_tag_value": "true",
+    "exception_tag_key": "WAFException",
+    "exception_tag_value": "false",
     "enforce_compliance": "false"
   }
 }

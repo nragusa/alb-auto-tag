@@ -87,6 +87,8 @@ EXTERNAL_ALB_TAG_KEY = os.environ.get('EXTERNAL_TAG_KEY')
 EXTERNAL_ALB_TAG_VALUE = os.environ.get('EXTERNAL_TAG_VALUE')
 INTERNAL_ALB_TAG_KEY = os.environ.get('INTERNAL_TAG_KEY')
 INTERNAL_ALB_TAG_VALUE = os.environ.get('INTERNAL_TAG_VALUE')
+EXCEPTION_ALB_TAG_KEY = os.environ.get('EXCEPTION_TAG_KEY')
+EXCEPTION_ALB_TAG_VALUE = os.environ.get('EXCEPTION_TAG_VALUE')
 
 #############
 # Main Code #
@@ -103,20 +105,9 @@ def evaluate_compliance(event, configuration_item, valid_rule_parameters):
     for elb in all_elbv2:
         overall_eval = 'NON_COMPLIANT'
         tags = get_alb_tags(alb_client, elb['LoadBalancerArn'])
-        if elb['Scheme'] == 'internet-facing':
-            print(f'External ALB found with ARN {elb["LoadBalancerArn"]}')
-            for tag in tags:
-                if tag['Key'] == EXTERNAL_ALB_TAG_KEY and tag['Value'] == EXTERNAL_ALB_TAG_VALUE:
-                    print(
-                        'Found a compliant tag key / value pair - marking as COMPLIANT')
-                    overall_eval = 'COMPLIANT'
-        elif elb['Scheme'] == 'internal':
-            print(f'Internal ALB found with ARN {elb["LoadBalancerArn"]}')
-            for tag in tags:
-                if tag['Key'] == INTERNAL_ALB_TAG_KEY and tag['Value'] == INTERNAL_ALB_TAG_VALUE:
-                    print(
-                        'Found a compliant tag key / value pair - marking as COMPLIANT')
-                    overall_eval = 'COMPLIANT'
+        if scheme_tag_is_compliant(elb['Scheme'], tags) and exception_tag_is_copmliant(tags):
+            print('Found a compliant tag key / value pair - marking as COMPLIANT')
+            overall_eval = 'COMPLIANT'
         else:
             print('Unknown ALB type found')
         if overall_eval == 'NON_COMPLIANT':
@@ -147,6 +138,28 @@ def get_alb_tags(client, elbv2_arn):
         ResourceArns=[elbv2_arn]
     )
     return resp['TagDescriptions'][0]['Tags']
+
+
+def scheme_tag_is_compliant(scheme, tags):
+    status = False
+    if scheme == 'internet-facing':
+        for tag in tags:
+            if tag['Key'] == EXTERNAL_ALB_TAG_KEY and tag['Value'] == INTERNAL_ALB_TAG_VALUE:
+                status = True
+    else:
+        for tag in tags:
+            if tag['Key'] == INTERNAL_ALB_TAG_KEY and tag['Value'] == EXTERNAL_ALB_TAG_VALUE:
+                status = True
+    return status
+
+
+def exception_tag_is_copmliant(tags):
+    status = False
+    for tag in tags:
+        # Only look for the existence of the key, not the value
+        if tag['Key'] == EXCEPTION_ALB_TAG_KEY:
+            status = True
+    return status
 
 
 def evaluate_parameters(rule_parameters):
